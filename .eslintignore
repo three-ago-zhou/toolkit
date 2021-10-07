@@ -1,0 +1,7 @@
+node_modules
+lib/
+dist/
+**/*.d.ts
+scripts/
+**/*/types.ts
+**/__test__/**

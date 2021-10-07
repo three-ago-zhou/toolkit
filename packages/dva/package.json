@@ -1,0 +1,74 @@
+{
+    "name": "@my-toolkit/dva",
+    "version": "1.0.2",
+    "description": "fork dva and upgrade",
+    "main": "./dist/index.js",
+    "typings": "./dist/index.d.ts",
+    "private": false,
+    "sideEffects": false,
+    "scripts": {
+        "build": "tsc -w",
+        "test": "jest --config jest.config.js ---cache=false"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/three-ago-zhou/toolkit"
+    },
+    "homepage": "https://github.com/three-ago-zhou/toolkit",
+    "author": "spike",
+    "keywords": [
+        "dva",
+        "react",
+        "redux",
+        "redux-saga",
+        "web"
+    ],
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/three-ago-zhou/toolkit/-/issues"
+    },
+    "dependencies": {
+        "dva-model-extend": "^0.1.2",
+        "immer": "^9.0.6",
+        "invariant": "^2.2.4",
+        "redux-saga": "^1.1.3",
+        "warning": "^4.0.3"
+    },
+    "peerDependencies": {
+        "connected-react-router": "^6.9.1",
+        "history": "^4.10.1",
+        "immer": "^9.0.6",
+        "react": "^16.14.0",
+        "react-dom": "^16.14.0",
+        "react-redux": "^7.2.4",
+        "react-router": "^5.2.0",
+        "react-router-dom": "^5.2.0",
+        "redux": "^4.1.0",
+        "redux-saga": "^1.1.3",
+        "typescript": "^4.4.2"
+    },
+    "devDependencies": {
+        "@testing-library/jest-dom": "^5.14.1",
+        "@testing-library/react": "^12.0.0",
+        "@types/invariant": "^2.2.34",
+        "@types/jest": "^27.0.1",
+        "@types/node": "^16.7.12",
+        "@types/react": "^16.14.11",
+        "@types/react-dom": "16.9.14",
+        "@types/react-redux": "^7.1.18",
+        "@types/react-router-dom": "^5.1.8",
+        "@types/warning": "^3.0.0",
+        "jest": "^27.0.6",
+        "ts-jest": "^27.0.5",
+        "typescript": "^4.4.2"
+    },
+    "files": [
+        "dist",
+        "src",
+        "*.d.ts"
+    ],
+    "engines": {
+        "node": ">=14.14.0",
+        "npm": ">=6.14.11"
+    }
+}

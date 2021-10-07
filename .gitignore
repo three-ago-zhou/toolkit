@@ -1,0 +1,10 @@
+.DS_Store
+/coverage
+/.changelog
+/website/dist
+/website/lib
+node_modules
+/packages/**/node_modules
+/packages/**/dist
+/packages/**/lib
+/lerna-debug.log

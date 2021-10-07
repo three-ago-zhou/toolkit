@@ -1,0 +1,27 @@
+{
+    "packages": [
+        "packages/*"
+    ],
+    "version": "independent",
+    "npmClient": "npm",
+    "command": {
+        "version": {
+            "exact": true,
+            "no-commit-hooks": true
+        },
+        "publish": {
+            "registry": "https://registry.npmjs.org/",
+            "no-commit-hooks": true
+        }
+    },
+    "changelog": {
+        "cacheDir": ".changelog",
+        "labels": {
+            "pr(enhancement)": ":rocket: Enhancement",
+            "pr(bug)": ":bug: Bug Fix",
+            "pr(documentation)": ":book: Documentation",
+            "pr(dependency)": ":deciduous_tree: Dependency",
+            "pr(chore)": ":turtle: Chore"
+        }
+    }
+}
