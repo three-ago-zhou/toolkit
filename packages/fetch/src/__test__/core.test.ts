@@ -27,8 +27,10 @@ describe("core test", () => {
             },
         });
         const result = await task;
+        const promiseResult = await task.task.toPromise();
 
         expect(result).toEqual(user);
+        expect(promiseResult).toEqual(result);
         expect(task.task.result()).toEqual(user);
         expect(task.task.error()).toBeUndefined();
         expect(task.task.isRunning()).toBeFalsy();

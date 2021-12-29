@@ -1,7 +1,7 @@
 import Plugin from '../plugin';
 import { compose } from '../utils';
 
-describe("fetch plugin test", () => {
+describe("creams-fetch plugin test", () => {
     it("plugin before", async () => {
         const plugin = new Plugin();
         const request = {};

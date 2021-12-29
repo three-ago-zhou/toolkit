@@ -1,5 +1,5 @@
 // interface
-import type { TaskMeta } from './types';
+import type { TaskMeta, DeferredType } from './types';
 
 /**
  * @summary fetch错误码
@@ -64,6 +64,19 @@ export function getMetaInfo(url?: string): TaskMeta {
       name: url || 'anonymous',
     };
 };
+
+/**
+ * @summary 创建个等待结果的promise
+ * @returns 
+ */
+export function deferred<R = unknown>() {
+    const def = {} as DeferredType<R>;
+    def.promise = new Promise<R>((resolve, reject) => {
+      def.resolve = resolve
+      def.reject = reject
+    });
+    return def;
+}
 
 /**
  * @summary 注意执行顺序是队列顺序(先进先出(FIFO)),因为每个task可能有自身的plugin方法,优先执行公共plugin,再执行自身的plugin.
@@ -136,6 +149,7 @@ export function compose<
     return <P extends Parameters<F>, R extends ReturnType<F>>(r: P[0]) => {
         let _resolve: (r: P[0]) => void;
         let _reject: (reason?: any) => void;
+        let maxStack = 0;
         const p = new Promise<P[0]>((resolve, reject) => {
             _resolve = resolve;
             _reject = reject;
@@ -144,7 +158,8 @@ export function compose<
         let nextValue = itr.next();
         let value: P[0] = r;
         function* g() {
-            while(!nextValue.done) {
+            while(!nextValue.done && maxStack < 50) {
+                maxStack += 1;
                 /* eslint-disable no-loop-func */
                 /* eslint-disable @typescript-eslint/no-use-before-define */
                 value = yield nextValue.value(value).then(next.next.bind(next)).catch((e) => {
@@ -157,6 +172,11 @@ export function compose<
                     };
                 });
                 nextValue = itr.next();
+            }
+            if (maxStack >= 50) {
+                _reject(`compose调用超过最大限制栈50次`);
+                console.error(`compose调用超过最大限制栈50次`);
+                next.return(`compose调用超过最大限制栈50次`);
             }
             if (nextValue.done) {
                 _resolve(value);

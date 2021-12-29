@@ -7,13 +7,14 @@ import type { GetType } from './mocks/server';
 
 describe("abort test", () => {
     it("abort task undefined reason", () => {
-        const abort = new Abort();
+        const abort = new Abort<GetType>();
         const task: TaskBase<GetType> = {
             taskStatus: TaskStatusEnum.BEFORE,
             isRunning: () => task.taskStatus === TaskStatusEnum.RUNNING,
             isAborted: () => task.taskStatus === TaskStatusEnum.ABORTED,
             result: () => undefined,
             error: () => task.taskError,
+            toPromise: () => Promise.reject(task.taskError),
             taskError: undefined,
             meta: {
                 name: 'test',
@@ -45,13 +46,14 @@ describe("abort test", () => {
     });
 
     it("abort task set reason", () => {
-        const abort = new Abort();
+        const abort = new Abort<GetType>();
         const task: TaskBase<GetType> = {
             taskStatus: TaskStatusEnum.BEFORE,
             isRunning: () => task.taskStatus === TaskStatusEnum.RUNNING,
             isAborted: () => task.taskStatus === TaskStatusEnum.ABORTED,
             result: () => undefined,
             error: () => task.taskError,
+            toPromise: () => Promise.reject(task.taskError),
             taskError: undefined,
             meta: {
                 name: 'test',
@@ -83,13 +85,14 @@ describe("abort test", () => {
     });
 
     it("abort task running", async () => {
-        const abort = new Abort();
+        const abort = new Abort<GetType>();
         const task: TaskBase<GetType> = {
             taskStatus: TaskStatusEnum.RUNNING,
             isRunning: () => task.taskStatus === TaskStatusEnum.RUNNING,
             isAborted: () => task.taskStatus === TaskStatusEnum.ABORTED,
             result: () => undefined,
             error: () => task.taskError,
+            toPromise: () => Promise.reject(task.taskError),
             taskError: undefined,
             meta: {
                 name: 'test',

@@ -42,7 +42,13 @@ export enum AbortEnum {
  * @summary plugin.before中接受的参数
  */
 export interface BeforeTypeParams extends NonNullable<Config['requestInit']>, ExtraFetchOptions {
+    /**
+     * @deprecated 不再使用
+     */
     url?: string;
+    /**
+     * @summary request.body.传入body对象,会在内部做转换
+     */
     body?: any;
 }
 /**
@@ -119,32 +125,54 @@ export interface Config {
     plugin?: PluginBase;
 };
 
-export interface TaskBase<R = unknown> {
-    /**
-     * @summary task状态,请勿手动去更改它
-     */
-    taskStatus: TaskStatusEnum;
+/**
+ * @summary 等待结果的promise变量
+ */
+export interface DeferredType<R = unknown> {
+    promise: Promise<R>;
+    resolve: (v: R) => void;
+    reject: (v: TaskErrorReason) => void;
+};
+/**
+ * @summary Task类型
+ */
+export interface TaskBase<R = unknown> extends TaskStatusBase<R> {
     /**
      * @summary abort task
      */
-    abortController: AbortBase;
+    abortController: AbortBase<R>;
     /**
      * @summary fetch请求
      */
     request: Promise<R>
+};
+
+/**
+ * @class
+ * @classdesc task的状态
+ */
+ export interface TaskStatusBase<R = unknown> {
     /**
-     * @summary task错误值
+     * @summary 等待结果的promise变量
      */
-    taskError: TaskErrorReason | undefined;
+    deferredEnd?: DeferredType<R>;
     /**
      * @summary task提供的一些额外信息
      * @todo 可以额外拓展一些性能方面的信息
      */
     readonly meta: TaskMeta;
     /**
+     * @summary task状态,请勿手动去更改它
+     */
+    taskStatus: TaskStatusEnum;
+    /**
+     * @summary task错误值
+     */
+    taskError: TaskErrorReason | undefined;
+    /**
      * @summary 当前task是否正在运行
      * @returns {boolean}
-     */
+    */
     isRunning: () => boolean;
     /**
      * @summary 获取task fulfilled结果
@@ -158,6 +186,10 @@ export interface TaskBase<R = unknown> {
      * @summary 返回task是否被取消
      */
     isAborted: () => boolean;
+    /**
+     * @summary promise的形式返回task结果
+     */
+    toPromise: () => Promise<R>;
 };
 
 /**
@@ -202,6 +234,9 @@ export interface TaskParams {
      * @summary plugin
      */
     plugin: PluginBase;
+    /**
+     * @summary new Request的构造参数
+     */
     requestInit: Config['requestInit'];
     /**
      * @summary 额外的method方法
@@ -225,17 +260,16 @@ export interface ExtraFetchOptions {
      * @summary methods
      */
     methods?: RequestInit['method'];
-    // body?: any;
     /**
-     * @deprecated 后期不再使用,交与plugin维护
+     * @deprecated 不再使用,交与plugin维护
      */
     noToken?: boolean; // 不携带token
     /**
-     * @deprecated 后期不再使用,交与plugin维护
+     * @deprecated 不再使用,交与plugin维护
      */
     noCheckToken?: boolean; // 不验证token
     /**
-     * @deprecated 后期不再使用,交与plugin维护
+     * @deprecated 不再使用,交与plugin维护
      */
     hasNotification?: boolean; // 遇到错误是否默认展示提示框
 };
@@ -276,10 +310,32 @@ export interface TaskErrorReason {
      type?: TaskStatusEnum.ABORTED | TaskStatusEnum.REJECTED;
 }
 
-export interface AbortBase extends AbortController {
+/**
+ * @summary 取消fetch请求
+ */
+export interface AbortBase<R = unknown> extends AbortController {
     abortedPromise: Promise<never>;
     abortTask: (
-        task: TaskBase,
+        task: TaskBase<R>,
         reason?: string,
     ) => void;
 };
+
+/**
+ * @summary helper工具函数返回的对象上挂载的事件
+ */
+export interface HelperProperty<R = unknown> {
+    /**
+     * @summary 在任务未真正执行时,task为undefined
+     */
+    task?: TaskBase<R> | undefined;
+    /**
+     * @summary 取消task任务
+     */
+    abort: (reason?: string) => void;
+}
+
+/**
+ * @summary helper工具函数的返回
+ */
+export interface RequestInterface<R = unknown> extends Promise<R>, HelperProperty<R> {};

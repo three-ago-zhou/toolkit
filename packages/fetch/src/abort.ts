@@ -8,13 +8,7 @@ import type {
 } from './types'; 
 
 const isCanAbortController = typeof AbortController !== 'undefined';
-
-/**
- * @summary 可暂停request的API
- */
-const AC = isCanAbortController
-? AbortController
-: class MyAbortController implements AbortController {
+export class CreamsAbortController implements AbortController {
     readonly signal: AbortSignal = {
         aborted: false,
         addEventListener() {/* eslint-disable @typescript-eslint/no-empty-function */},
@@ -27,8 +21,14 @@ const AC = isCanAbortController
 
     abort = () => {/* eslint-disable @typescript-eslint/no-empty-function  */};
 };
+/**
+ * @summary 可暂停request的API
+ */
+const AC = isCanAbortController
+? AbortController
+: CreamsAbortController;
 
-class Abort extends AC implements AbortBase {
+class Abort<R = unknown> extends AC implements AbortBase<R> {
     /**
      * @summary Promise 实例的reject
      */
@@ -44,7 +44,7 @@ class Abort extends AC implements AbortBase {
      */
     private abortReason: string | undefined;
 
-    private task: TaskBase | undefined;
+    private task: TaskBase<R> | undefined;
 
     constructor() {
         super();
@@ -67,7 +67,7 @@ class Abort extends AC implements AbortBase {
     }
 
     public abortTask = (
-        task: TaskBase,
+        task: TaskBase<R>,
         reason?: string
     ) => {
         this.abortReason = reason;

@@ -73,10 +73,9 @@ export function stringify(
                     return undefined;
                 }
                 if (Array.isArray(value)) {
-                    if (value.length === 0) {
-                        return undefined;
+                    if (value.length !== 0) {
+                        value = value.map(item => encodeURIComponent(item));
                     }
-                    value = value.map(item => encodeURIComponent(item));
                 } else {
                     value = encodeURIComponent(value as string);
                 }
@@ -89,3 +88,81 @@ export function stringify(
 };
 
 export default request;
+
+import React from 'react';
+import ReactDOM from 'react-dom';
+
+const ParentContext = React.createContext({
+  parentName: 'hello',
+});
+
+const Childrn = () => {
+  const { parentName } = React.useContext(ParentContext);
+  const childrenRef = React.useRef();
+  const [siblingName, setSiblingName] = React.useState(parentName);
+  React.useEffect(() => {
+    setSiblingName(`siblingName: ${parentName}`);
+  }, [parentName]);
+  React.useLayoutEffect(() => {
+
+  }, []);
+  React.useEffect(() => {
+  }, [parentName]);
+  const handleClick = React.useCallback(() => {
+  }, []);
+  const memoRender = React.useMemo(() => {
+    return (
+      <div>
+        {siblingName}
+      </div>
+    )
+  }, [siblingName]);
+  return (
+    <div ref={childrenRef}>
+      {parentName}
+      {memoRender}
+    </div>
+  );
+};
+
+const SiblingChilren = ({
+  clickMe
+}) => {
+  const handleClick = React.useCallback(() => {
+    clickMe('clickMe');
+  }, [clickMe]);
+  return (
+    <div>
+      <div onClick={handleClick}>改变子组件名称</div>
+    </div>
+  );
+};
+
+const Parent = () => {
+  const [childrenName, setChildrenName] = React.useState("firstChildren");
+
+  const handleClickMe = React.useCallback((name) => {
+    setChildrenName('hello' + name);
+  }, []);
+  return (
+    <ParentContext.Provider value={{ parentName: childrenName }}>
+      <span>i'm parent</span>
+      <Childrn />
+      <SiblingChilren clickMe={handleClickMe} />
+    </ParentContext.Provider>
+  );
+};
+
+
+const App = () => {
+  console.log(<App />);
+  return (
+    <div>
+      <Parent />
+    </div>
+  );
+};
+
+ReactDOM.createRoot(
+  document.getElementById('container')
+).render(<App />);

@@ -2,7 +2,7 @@ import { setupServer } from 'msw/node'
 import { rest } from 'msw'
 
 export interface GetType {
-    id: number;
+    id?: number;
     name: string;
     arr: string[];
 };
@@ -12,6 +12,8 @@ export const user: GetType = {
     name: 'spike',
     arr: ['a', 'b', 'c'],
 };
+
+let retryCount = 0;
 
 export const server = setupServer(
     rest.get('http://example.com/get-error', (_req, res, _ctx) => {
@@ -44,6 +46,37 @@ export const server = setupServer(
                 'Content-Type': 'text/plain',
             }),
         );
+    }),
+    rest.get('http://example.com/user-helper/:userId', (req, res, ctx) => {
+        const { userId } = req.params;
+        return res(
+            ctx.status(200),
+            ctx.json(userId),
+            ctx.set({
+                'Content-Type': 'application/text'
+            }),
+        );
+    }),
+    rest.get('http://example.com/retry-get', (_req, res, ctx) => {
+        retryCount += 1;
+        if (retryCount < 5) {
+            return res(
+                ctx.status(200),
+                ctx.json({}),
+                ctx.set({
+                    'Content-Type': 'application/json'
+                }),
+            );
+        } else {
+            retryCount = 0;
+            return res(
+                ctx.status(200),
+                ctx.json({ status: 'ok' }),
+                ctx.set({
+                    'Content-Type': 'application/json'
+                }),
+            );
+        }
     }),
     rest.post('http://example.com/user', (req, res, ctx) => {
         return res(

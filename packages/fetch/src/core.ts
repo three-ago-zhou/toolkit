@@ -87,7 +87,7 @@ class Core {
         });
         return Object.assign(promise, {
             task,
-            abort: (reason: string) => {
+            abort: (reason?: string) => {
                 task.abortController.abortTask(task, reason);
             },
         });

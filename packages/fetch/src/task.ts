@@ -7,45 +7,27 @@ import {
 import Abort from './abort';
 import request, { transformResponse } from './request';
 import { TaskStatusEnum, AbortEnum } from './types';
+import TaskStatus from './taskStatus';
 
 // interface
 import type {
     TaskParams,
-    TaskMeta,
     TaskBase,
     PluginBase,
     BeforeType,
     AbortBase,
     BeforeTypeParams,
-    TaskErrorReason,
 } from './types';
 
-class Task<R = unknown> implements TaskBase<R> {
-    /**
-     * @summary task状态
-     */
-    public taskStatus: TaskStatusEnum;
-
-    /**
-     * @summary task回调值
-     */
-    private taskResult: R | undefined;
-
-    /**
-     * @summary task错误值(包含中断fetch请求的原因)
-     */
-    public taskError: TaskErrorReason | undefined;
-
-    /**
-     * @summary task提供的一些额外信息
-     * @todo 可以额外拓展一些性能方面的信息
-     */
-    public readonly meta: TaskMeta;
-
+/**
+ * @class
+ * @classdesc task
+ */
+class Task<R = unknown> extends TaskStatus<R> implements TaskBase<R> {
     /**
      * @summary {AbortController}
      */
-    public abortController: AbortBase;
+    public abortController: AbortBase<R>;
 
     /**
      * @summary fetch请求
@@ -68,9 +50,11 @@ class Task<R = unknown> implements TaskBase<R> {
         requestInit,
         extraFetchOption,
     }: TaskParams) {
+        super({
+            meta: getMetaInfo(url),
+        });
         this.taskStatus = TaskStatusEnum.BEFORE;
-        this.meta = getMetaInfo(url);
-        this.abortController = new Abort();
+        this.abortController = new Abort<R>();
         this.plugin = plugin;
         /**
          * 初始化fetch请求的第二个参数
@@ -87,6 +71,7 @@ class Task<R = unknown> implements TaskBase<R> {
     }
 
     /**
+     * @todo 这层应该单独抽离出来
      * @summary 创建一个fetch
      */
     private createRequest = (
@@ -98,6 +83,9 @@ class Task<R = unknown> implements TaskBase<R> {
          */
         const before = compose<BeforeType>(this.plugin.apply('before'));
         this.taskStatus = TaskStatusEnum.RUNNING;
+        if (extraFetchOption?.body) {
+            this.requestInit.body = extraFetchOption?.body;
+        }
         const fetchPromise = before({
             ...this.requestInit, 
             ...extraFetchOption,
@@ -116,6 +104,7 @@ class Task<R = unknown> implements TaskBase<R> {
             this.requestInit = result;
             const requestInstance = new Request(url, this.requestInit);
             compose(this.plugin.apply('running'))(requestInstance);
+            /** 这里是请求发起 */
             return request(requestInstance).then((response) => {
                 if (response.ok) {
                     // 为了防止plugin.fulfilled钩子函数内有延迟,推迟task状态改变,所以在response第一时间改变task状态
@@ -158,6 +147,9 @@ class Task<R = unknown> implements TaskBase<R> {
             this.abortController.abortedPromise,
         ]).then((result) => {
             this.taskResult = result;
+            if (this.deferredEnd) {
+                this.deferredEnd.resolve(this.taskResult);
+            }
             return result;
         }).catch((err) => {
             let error = {};
@@ -189,35 +181,14 @@ class Task<R = unknown> implements TaskBase<R> {
                 }
             }
             this.taskError = error;
+            if (this.deferredEnd) {
+                this.deferredEnd.reject(this.taskError);
+            }
             return Promise.reject(this.taskError);
         }).finally(() => {
             this.plugin.unUse();
         });
     }
-
-    /**
-     * @summary 获取task fulfilled结果
-     * @returns {R | undefined}
-     */
-    public result = () => this.taskResult;
-
-    /**
-     * @summary 获取task rejected结果
-     * @returns {AbortReason | undefined}
-     */
-    public error = () => this.taskError;
-
-    /**
-     * @summary 返回task是否被取消
-     * @returns {boolean}
-     */
-    public isAborted = () => this.taskStatus === TaskStatusEnum.ABORTED;
-
-    /**
-     * @summary 当前task是否正在运行
-     * @returns {boolean}
-     */
-    public isRunning = () => this.taskStatus === TaskStatusEnum.RUNNING;
 };
 
 export default Task;

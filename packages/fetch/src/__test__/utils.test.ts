@@ -5,7 +5,7 @@ import {
     rejectCompose,
 } from '../utils';
 
-describe("fetch utils test", () => {
+describe("creams-fetch utils test", () => {
     it("compose test empty array", () => {
         const empty: ((p: any) => any)[] = [];
         const result = {
